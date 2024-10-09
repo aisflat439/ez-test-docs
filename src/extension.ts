@@ -60,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         let currentDescribe: string | null = null;
-        const describeRegex = /^describe\(\s*"([^"]*)"/;
+        const describeRegex = /^describe\(\s*["'`](.*?)["'`]/;
         const testItRegex = /^\s*(it|test)\(\s*["'`](.*?)["'`]/;
 
         for await (const untrimmedLine of rl) {

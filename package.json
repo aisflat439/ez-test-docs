@@ -2,7 +2,7 @@
   "name": "ez-test-docs",
   "displayName": "ez-test-docs",
   "description": "Ez Test Docs creates hovers that show your test cases for your functions",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "fitzsimonsdevin",
   "author": {
     "name": "fitzsimonsdevin"
