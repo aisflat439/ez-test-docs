@@ -1,71 +1,66 @@
-# ez-test-docs README
+# ez-test-docs
 
-This is the README for your extension "ez-test-docs". After writing up a brief description, we recommend including the following sections.
+ez-test-docs is a Visual Studio Code extension that provides a convenient hover feature to display relevant test descriptions (`it` blocks) for your functions.
+
+When hovering over a function, this extension fetches the corresponding test cases from associated `.spec` or `.test` files and displays them in a hover tooltip. It supports both JavaScript and TypeScript projects, making it easy to understand what has been tested without needing to open the test files manually.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Automatically shows test descriptions when hovering over functions.
+- Supports `.spec` and `.test` files for test detection.
+- Works with JavaScript, TypeScript, React, and React Native projects.
+- Detects test cases using different quote types: `"`, `'`, and `` ` ``.
 
-For example if there is an image subfolder under your extension project workspace:
+## Example
 
-\!\[feature X\]\(images/feature-x.png\)
+If you have a function like this:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```typescript
+// src/add.ts
+export const add = (a: number, b: number) => a + b;
+```
 
-## Requirements
+And a test like this:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```typescript
+// src/add.spec.ts
+describe("add", () => {
+  it("2 plus 2 is four", () => {
+    expect(add(2, 2)).toBe(4);
+  });
 
-## Extension Settings
+  it("3 plus 2 is five", () => {
+    expect(add(3, 2)).toBe(5);
+  });
+});
+```
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+When you hover over the `add` function, you’ll see a tooltip like this:
 
-For example:
+```
+add
 
-This extension contributes the following settings:
+- 2 plus 2 is four
+- 3 plus 2 is five
+```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Installation
 
-## Known Issues
+1. Install ez-test-docs from the VS Code Marketplace.
+2. Once installed, the extension will activate whenever you open a supported project.
+3. Start hovering over your functions to see the associated test descriptions!
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Supported Languages
 
-## Release Notes
+- JavaScript
+- TypeScript
+- React (.jsx)
+- React Native (.tsx)
 
-Users appreciate release notes as you update your extension.
+## Contributing
 
-### 1.0.0
+Contributions are welcome! If you'd like to contribute to ez-test-docs, please open an issue or submit a pull request on GitHub.
 
-Initial release of ...
+## License
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+This project is licensed under the MIT License.

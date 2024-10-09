@@ -16,7 +16,14 @@ export function activate(context: vscode.ExtensionContext) {
   ];
 
   const provider = vscode.languages.registerHoverProvider(languages, {
-    async provideHover(document, position, token) {
+    async provideHover(document, position) {
+      const wordRange = document.getWordRangeAtPosition(position);
+      if (!wordRange) {
+        return;
+      }
+
+      const hoveredText = document.getText(wordRange);
+
       const currentFilePath = document.fileName;
       const currentFileExtension = path.extname(currentFilePath);
       const directory = path.dirname(currentFilePath);
@@ -25,71 +32,67 @@ export function activate(context: vscode.ExtensionContext) {
         path.extname(currentFilePath)
       );
 
-      const specFilePath = path.join(
-        directory,
-        `${baseName}.spec${currentFileExtension}`
-      );
+      let specFilePath: string | null = null;
 
-      if (!fs.existsSync(specFilePath)) {
+      // Array of possible test file extensions
+      const possibleExtensions = [
+        `.spec${currentFileExtension}`,
+        `.test${currentFileExtension}`,
+      ];
+
+      // Loop through possible extensions and find the first existing file
+      for (const ext of possibleExtensions) {
+        const filePath = path.join(directory, `${baseName}${ext}`);
+        if (fs.existsSync(filePath)) {
+          specFilePath = filePath;
+          break; // Exit loop once we find a valid file
+        }
+      }
+
+      if (!specFilePath) {
         return;
       } else {
-        const blocks: string[] = [];
+        const blocks: Array<string[]> = [];
         const fileStream = fs.createReadStream(specFilePath);
         const rl = readline.createInterface({
           input: fileStream,
           crlfDelay: Infinity,
         });
 
-        const describeRegex = /^describe\(/;
-        const testItRegex = /^(it|test)\(/;
+        let currentDescribe: string | null = null;
+        const describeRegex = /^describe\(\s*"([^"]*)"/;
+        const testItRegex = /^\s*(it|test)\(\s*["'`](.*?)["'`]/;
 
         for await (const untrimmedLine of rl) {
           const line = untrimmedLine.trim();
-          if (describeRegex.test(line) || testItRegex.test(line)) {
-            blocks.push(line);
+
+          const describeMatch = line.match(describeRegex);
+          if (describeMatch) {
+            currentDescribe = describeMatch[1];
+            blocks.push([currentDescribe]);
+            continue;
+          }
+
+          const itMatch = line.match(testItRegex);
+          if (itMatch && currentDescribe) {
+            const testCase = itMatch[2];
+            blocks[blocks.length - 1].push(testCase);
           }
         }
 
-        console.log("blocks: ", blocks);
-        const text = blocks
-          .map((block) => {
-            const isDescribe = describeRegex.test(block);
-            const str = block.match(/"([^"]*)"/);
-            if (str) {
-              return isDescribe ? `\`${str[1]}\`: ` : `${str[1]}\n`;
-            }
-          })
-          .join(". ");
-
         const hoverText = new vscode.MarkdownString(
-          `
-					**${path.basename(specFilePath)}** 
-					${text}
-					`
+          blocks
+            .filter((block) => block[0].includes(hoveredText))
+            .map((block) => `**${block[0]}**\n- ${block.slice(1).join("\n- ")}`)
+            .join("\n\n")
         );
+
         return new vscode.Hover(hoverText);
       }
     },
   });
 
   context.subscriptions.push(provider);
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "ez-test-docs" is now active!');
-
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(
-    "ez-test-docs.helloWorld",
-    () => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
-      vscode.window.showInformationMessage("Hello World from ez-test-docs!");
-    }
-  );
-
-  context.subscriptions.push(disposable);
 }
 
 // This method is called when your extension is deactivated
