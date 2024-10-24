@@ -3,7 +3,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import * as readline from "readline";
+import { extractTestStructure, mapTestNodeToText } from "./jestParser";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -52,40 +52,12 @@ export function activate(context: vscode.ExtensionContext) {
       if (!specFilePath) {
         return;
       } else {
-        const blocks: Array<string[]> = [];
-        const fileStream = fs.createReadStream(specFilePath);
-        const rl = readline.createInterface({
-          input: fileStream,
-          crlfDelay: Infinity,
-        });
-
-        let currentDescribe: string | null = null;
-        const describeRegex = /^describe\(\s*["'`](.*?)["'`]/;
-        const testItRegex = /^\s*(it|test)\(\s*["'`](.*?)["'`]/;
-
-        for await (const untrimmedLine of rl) {
-          const line = untrimmedLine.trim();
-
-          const describeMatch = line.match(describeRegex);
-          if (describeMatch) {
-            currentDescribe = describeMatch[1];
-            blocks.push([currentDescribe]);
-            continue;
-          }
-
-          const itMatch = line.match(testItRegex);
-          if (itMatch && currentDescribe) {
-            const testCase = itMatch[2];
-            blocks[blocks.length - 1].push(testCase);
-          }
-        }
-
-        const hoverText = new vscode.MarkdownString(
-          blocks
-            .filter((block) => block[0].includes(hoveredText))
-            .map((block) => `**${block[0]}**\n- ${block.slice(1).join("\n- ")}`)
-            .join("\n\n")
+        const textNode = extractTestStructure(specFilePath);
+        const matchedNode = textNode.children.find(
+          (node) => node.name === hoveredText
         );
+
+        const hoverText = mapTestNodeToText(matchedNode!);
 
         return new vscode.Hover(hoverText);
       }
